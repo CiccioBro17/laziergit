@@ -9,6 +9,9 @@ No terminal commands to remember. Just click.
 ```bash
 git clone https://github.com/CiccioBro17/laziergit.git
 cd laziergit
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 bash install.sh
 ```
 
