@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""laziergit - An even lazier git TUI: ADD, COMMIT, PUSH, REVERT."""
+"""easiergit - An even lazier git TUI: ADD, COMMIT, PUSH, REVERT."""
 
 from __future__ import annotations
 
@@ -38,7 +38,7 @@ from textual.binding import Binding
 
 # ── Config ───────────────────────────────────────────────
 
-CONFIG_DIR = Path.home() / ".config" / "laziergit"
+CONFIG_DIR = Path.home() / ".config" / "easiergit"
 CONFIG_FILE = CONFIG_DIR / "config.json"
 
 
@@ -441,7 +441,7 @@ class RevertScreen(ModalScreen):
 
 # ── Main app ─────────────────────────────────────────────
 
-class LazierGitApp(App):
+class EasierGitApp(App):
     CSS = """
     Screen {
         background: #1a1a2e;
@@ -583,7 +583,7 @@ class LazierGitApp(App):
 
     def compose(self):
         with Vertical(id="main-box"):
-            yield Static("LAZIER GIT", id="title")
+            yield Static("EASIER GIT", id="title")
             with Horizontal(id="btn-row"):
                 yield self._big_btn("+  ADD", "add-btn")
                 yield self._big_btn("\u2713  COMMIT", "commit-btn", disabled=True)
@@ -662,7 +662,7 @@ class LazierGitApp(App):
             self.push_screen(
                 ConfirmScreen(
                     f"{len(staged)} file(s) already staged\n"
-                    "from outside laziergit.\nProceed with commit?"),
+                    "from outside easiergit.\nProceed with commit?"),
                 self._confirm_commit)
         else:
             self._show_commit_screen()
@@ -824,7 +824,7 @@ class LazierGitApp(App):
 
 
 def main() -> None:
-    LazierGitApp().run()
+    EasierGitApp().run()
 
 
 if __name__ == "__main__":

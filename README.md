@@ -1,4 +1,4 @@
-# laziergit
+# easiergit
 
 A simple tool with big buttons to help you add, commit, push, and reset in git.
 
@@ -7,15 +7,15 @@ No terminal commands to remember. Just click.
 ## How to install
 
 ```bash
-git clone https://github.com/CiccioBro17/laziergit.git
-cd laziergit
+git clone https://github.com/CiccioBro17/easiergit.git
+cd easiergit
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 bash install.sh
 ```
 
-Then type `laziergit` in any git folder.
+Then type `easiergit` in any git folder.
 
 ## What the buttons do
 
