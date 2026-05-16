@@ -97,7 +97,11 @@ def embed_creds_in_url(url: str, username: str, token: str) -> str:
 def save_repo_creds(remote_url: str, username: str, token: str) -> None:
     cfg = load_config()
     key = remote_url_key(remote_url)
-    cfg.setdefault("repos", {})[key] = {"username": username, "token": token}
+    cfg.setdefault("repos", {})[key] = {
+        "username": username,
+        "token": token,
+        "url": remote_url,
+    }
     save_config(cfg)
     authed = embed_creds_in_url(remote_url, username, token)
     git("remote", "set-url", "origin", authed)
@@ -110,6 +114,19 @@ def get_repo_creds(remote_url: str) -> Optional[Tuple[str, str]]:
     if entry:
         return (entry["username"], entry["token"])
     return None
+
+
+def get_clean_url_from_config() -> str:
+    """Return the clean (no credentials) URL from config for the current remote."""
+    rc, out, _ = git("remote", "get-url", "origin")
+    current = out.strip()
+    if not current:
+        return ""
+    key = remote_url_key(current)
+    entry = load_config().get("repos", {}).get(key)
+    if entry and "url" in entry:
+        return entry["url"]
+    return current
 
 
 def get_staged_files() -> List[str]:
@@ -725,17 +742,17 @@ class EasierGitApp(App):
         self._show_push_screen()
 
     def _ensure_creds_and_push(self) -> None:
-        rc, out, _ = git("remote", "get-url", "origin")
-        url = out.strip()
-        if not url:
+        clean = get_clean_url_from_config()
+        if not clean:
             self._show_push_screen()
             return
-        if is_github_url(url):
-            creds = get_repo_creds(url)
+        git("remote", "set-url", "origin", clean)
+        if is_github_url(clean):
+            creds = get_repo_creds(clean)
             if creds:
                 user, token = creds
-                embed = embed_creds_in_url(url, user, token)
-                git("remote", "set-url", "origin", embed)
+                git("remote", "set-url", "origin",
+                    embed_creds_in_url(clean, user, token))
                 self._show_push_screen()
             else:
                 self.push_screen(CredentialsScreen(), self._on_creds_from_push)
@@ -745,10 +762,9 @@ class EasierGitApp(App):
     def _on_creds_from_push(self, result: Optional[Tuple[str, str]]) -> None:
         if result is None:
             return
-        rc, out, _ = git("remote", "get-url", "origin")
-        url = out.strip()
+        clean = get_clean_url_from_config()
         user, token = result
-        save_repo_creds(url, user, token)
+        save_repo_creds(clean, user, token)
 
     def _confirm_push(self, confirmed: Optional[bool]) -> None:
         if confirmed:
@@ -756,20 +772,6 @@ class EasierGitApp(App):
 
     def _show_push_screen(self) -> None:
         self.push_screen(PushScreen(), self._on_push_done)
-
-    def _restore_clean_url(self) -> None:
-        rc, out, _ = git("remote", "get-url", "origin")
-        url = out.strip()
-        if not url:
-            return
-        for entry in load_config().get("repos", {}).values():
-            u = entry.get("username", "")
-            t = entry.get("token", "")
-            if u and t:
-                clean = url.replace(f"{u}:{t}@", "")
-                if clean != url:
-                    git("remote", "set-url", "origin", clean)
-                    return
 
     def _on_push_done(self, branch: Optional[str]) -> None:
         if branch is None:
@@ -780,9 +782,8 @@ class EasierGitApp(App):
         if rc == 0:
             self.refresh_status()
         elif "401" in err or "403" in err or "Authentication failed" in err:
-            rc2, out2, _ = git("remote", "get-url", "origin")
-            url = out2.strip()
-            if url and get_repo_creds(url):
+            clean = get_clean_url_from_config()
+            if clean and get_repo_creds(clean):
                 self.push_screen(
                     ConfirmScreen(
                         "Push failed: bad credentials.\n"
@@ -792,6 +793,11 @@ class EasierGitApp(App):
                 self.push_screen(MessageScreen(f"Push failed:\n{err[:200]}"))
         else:
             self.push_screen(MessageScreen(f"Push failed:\n{err[:200]}"))
+
+    def _restore_clean_url(self) -> None:
+        clean = get_clean_url_from_config()
+        if clean:
+            git("remote", "set-url", "origin", clean)
 
     def _on_update_creds(self, confirmed: Optional[bool]) -> None:
         if confirmed:
