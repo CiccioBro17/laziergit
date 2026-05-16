@@ -21,7 +21,7 @@ Then type `easiergit` in any git folder.
 
 - **ADD** — pick which files to save. New or changed files show in green, deleted files in red.
 - **COMMIT** — write a short message and save your changes.
-- **PUSH** — send your changes to the internet (GitHub, etc). If no remote is set, it asks for a URL.
+- **PUSH** — send your changes to the internet (GitHub, etc). If no remote is set, it asks for a URL and credentials (username and token).
 - **REVERT** — pick a commit and go back to how things were then.
 
 ## How to remove

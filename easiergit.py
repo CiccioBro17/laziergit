@@ -73,6 +73,8 @@ def is_github_url(url: str) -> bool:
 
 def remote_url_key(url: str) -> str:
     """Normalize a remote URL to use as a config key."""
+    if "@" in url:
+        url = url.split("@", 1)[1]
     for prefix in ("https://", "http://", "git@"):
         if url.startswith(prefix):
             url = url[len(prefix):]
@@ -709,7 +711,7 @@ class EasierGitApp(App):
         if rc != 0:
             self.push_screen(MessageScreen(f"Failed to add remote:\n{err[:200]}"))
             return
-        if is_github_url(url):
+        if is_github_url(url) and not get_repo_creds(url):
             self.push_screen(CredentialsScreen(), self._on_creds_after_remote)
         else:
             self._show_push_screen()
